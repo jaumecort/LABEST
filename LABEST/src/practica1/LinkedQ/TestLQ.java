@@ -1,6 +1,6 @@
 package practica1.LinkedQ;
 
-import java.util.Arrays;
+//import java.util.Arrays;
 
 public class TestLQ {
 
