@@ -3,7 +3,7 @@ package practica2.P0CZ.Monitor;
 public class CounterThreadCZ extends Thread {
 
     private final MonitorCZ mon;
-    private final int numberOfIterations = 10000;
+    private final int numberOfIterations = 100000;
 
     public CounterThreadCZ(MonitorCZ monitor) {
         this.mon = monitor;
@@ -13,6 +13,7 @@ public class CounterThreadCZ extends Thread {
     public void run() {
         for (int i = 0; i < numberOfIterations; i++) {
             mon.inc();
+            //System.out.println(mon.getX());
         }
     }
 }

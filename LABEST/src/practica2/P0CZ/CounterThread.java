@@ -7,8 +7,12 @@ public class CounterThread extends Thread {
 
     @Override
     public void run() {
+        int R;
         for (int i = 0; i < I; i++) {
-            x = x + 1;
+            R = x;
+            try{sleep(1);} catch (InterruptedException ex){}
+            R = R+1;
+            x = R;
         }
     }
 }

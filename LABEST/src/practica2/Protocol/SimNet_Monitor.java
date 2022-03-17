@@ -1,5 +1,6 @@
 package practica2.Protocol;
 
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import practica1.CircularQ.CircularQueue;
@@ -10,21 +11,34 @@ import util.SimNet;
 public class SimNet_Monitor implements SimNet {
 
   protected CircularQueue<TCPSegment> queue;
-  //Completar
+  final ReentrantLock l = new ReentrantLock();
+  final Condition full = l.newCondition();
+  final Condition empty = l.newCondition();
 
   public SimNet_Monitor() {
     queue  = new CircularQueue<>(Const.SIMNET_QUEUE_SIZE);
-    //Completar
   }
 
   @Override
   public void send(TCPSegment seg) {
-    throw new RuntimeException("//Completar...");
+    l.lock();
+    try{
+      while (queue.full()) full.awaitUninterruptibly();
+      queue.put(seg);
+      empty.signalAll();
+    } finally {l.unlock();}
   }
 
   @Override
   public TCPSegment receive() {
-    throw new RuntimeException("//Completar...");
+    TCPSegment rec;
+    l.lock();
+    try{
+      while (queue.empty()) empty.awaitUninterruptibly();
+      rec = queue.get();
+      full.signalAll();
+    } finally {l.unlock();}
+    return rec;
   }
 
   @Override
