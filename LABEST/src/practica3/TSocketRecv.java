@@ -5,6 +5,7 @@ import util.Const;
 import util.TCPSegment;
 import util.TSocket_base;
 import util.SimNet;
+import util.Log;
 
 public class TSocketRecv extends TSocket_base {
 
@@ -12,10 +13,13 @@ public class TSocketRecv extends TSocket_base {
   protected CircularQueue<TCPSegment> rcvQueue;
   protected int rcvSegConsumedBytes;
 
+  protected Log log;
+
   public TSocketRecv(SimNet net) {
     super(net);
     rcvQueue = new CircularQueue<>(Const.RCV_QUEUE_SIZE);
     rcvSegConsumedBytes = 0;
+    log = Log.getLog();
     new ReceiverTask().start();
   }
 
@@ -23,9 +27,14 @@ public class TSocketRecv extends TSocket_base {
   public int receiveData(byte[] buf, int offset, int length) {
     lock.lock();
     try {
-      throw new RuntimeException("//Completar...");
+      while(rcvQueue.empty()){
+        appCV.awaitUninterruptibly();
+      }
+      int bytes_sent = consumeSegment(buf, offset, length);
+      return bytes_sent;
     } finally {
       lock.unlock();
+      
     }
   }
 
@@ -45,7 +54,11 @@ public class TSocketRecv extends TSocket_base {
   public void processReceivedSegment(TCPSegment rseg) {  
     lock.lock();
     try {
-      throw new RuntimeException("//Completar...");
+      if(!rcvQueue.full()) {
+        rcvQueue.put(rseg);
+        appCV.signalAll();
+      }
+      else {log.printRED("FULLLLL");}
     } finally {
       lock.unlock();
     }

@@ -1,6 +1,6 @@
 package practica2.Protocol;
 
-import java.util.concurrent.RecursiveTask;
+//import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import practica1.CircularQ.CircularQueue;
@@ -11,9 +11,9 @@ import util.SimNet;
 public class SimNet_Monitor implements SimNet {
 
   protected CircularQueue<TCPSegment> queue;
-  final ReentrantLock l = new ReentrantLock();
-  final Condition full = l.newCondition();
-  final Condition empty = l.newCondition();
+  protected final ReentrantLock l = new ReentrantLock();
+  protected final Condition full = l.newCondition();
+  protected final Condition empty = l.newCondition();
 
   public SimNet_Monitor() {
     queue  = new CircularQueue<>(Const.SIMNET_QUEUE_SIZE);
@@ -43,7 +43,7 @@ public class SimNet_Monitor implements SimNet {
 
   @Override
   public int getMTU() {
-    throw new UnsupportedOperationException("Not supported yet. NO cal completar fins a la pràctica 3...");
+    return Const.MTU_ETHERNET;
   }
 
 }

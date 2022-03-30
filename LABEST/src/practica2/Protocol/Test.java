@@ -1,6 +1,6 @@
 package practica2.Protocol;
 
-import practica1.Protocol.SimNet_Queue;
+//import practica1.Protocol.SimNet_Queue;
 import practica1.Protocol.TSocketRecv;
 import practica1.Protocol.TSocketSend;
 import util.Receiver;

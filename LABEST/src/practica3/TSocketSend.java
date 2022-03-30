@@ -29,7 +29,6 @@ public class TSocketSend extends TSocket_base {
       bytes_sent = bytes_sent + this_length;
 
       network.send(segment);
-      log.printPURPLE(segment.toString());
     }
 
     

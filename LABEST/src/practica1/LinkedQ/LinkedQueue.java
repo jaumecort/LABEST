@@ -79,7 +79,7 @@ public class LinkedQueue<E> implements Queue<E> {
     return new MyIterator();
   }
 
-  class MyIterator implements Iterator {
+  class MyIterator implements Iterator<E> {
 
     Node<E> actual;
     Node<E> anterior;

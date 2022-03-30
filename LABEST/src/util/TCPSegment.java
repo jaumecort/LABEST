@@ -8,7 +8,7 @@ public class TCPSegment {
   private int wnd;
   private byte[] data;
   
-  public static boolean SHOW_DATA = true;
+  public static boolean SHOW_DATA = false;
   
   public void setSyn(boolean syn) {
     this.syn = syn;

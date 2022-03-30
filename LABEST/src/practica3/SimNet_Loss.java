@@ -19,7 +19,16 @@ public class SimNet_Loss extends practica2.Protocol.SimNet_Monitor {
 
   @Override
   public void send(TCPSegment seg) {
-    throw new RuntimeException("//Completar...");
+    l.lock();
+    try{
+      if(rand.nextDouble()<lossRate){log.printRED("Segment Lost");}
+      else{
+        while (queue.full()) full.awaitUninterruptibly();
+        queue.put(seg);
+        log.printPURPLE(seg.toString());
+        empty.signalAll();
+      }
+    } finally {l.unlock();}
   }
 
   @Override
