@@ -24,6 +24,6 @@ public class SimNet_Loss extends practica2.Protocol.SimNet_Monitor {
 
   @Override
   public int getMTU() {
-    throw new RuntimeException("//Completar...");
+    return Const.MTU_ETHERNET;
   }
 }
