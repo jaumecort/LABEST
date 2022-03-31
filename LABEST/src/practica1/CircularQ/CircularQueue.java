@@ -9,9 +9,10 @@ public class CircularQueue<E> implements Queue<E> {
     private final int N;
     private int H, n_elem;
 
+    @SuppressWarnings("unchecked")
     public CircularQueue(int N) {
         this.N = N;
-        queue = (E[]) (new Object[N]);
+        queue = (E[]) new Object[N];
     }
 
     @Override
