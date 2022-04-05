@@ -89,7 +89,7 @@ public class TServerSocket extends TSocket_base {
 
   @Override
   public TSocket accept() {
-    TSocket sc;
+    //TSocket sc;
     lock.lock();
     try {
       throw new RuntimeException("//Completar...");
