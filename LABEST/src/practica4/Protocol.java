@@ -12,13 +12,16 @@ public class Protocol extends Protocol_base {
     }
 
     protected void ipInput(TCPSegment seg) {
-        throw new RuntimeException("//Completar...");
+        getMatchingTSocket(seg.getDestinationPort(), seg.getSourcePort()).processReceivedSegment(seg);
     }
 
     protected TSocket_base getMatchingTSocket(int localPort, int remotePort) {
         lk.lock();
         try {
-            throw new RuntimeException("//Completar...");
+            for (TSocket_base sc : listenSockets) {
+                if(sc.localPort == localPort && sc.remotePort == remotePort) return sc;
+            }
+            return null;
         } finally {
             lk.unlock();
         }
