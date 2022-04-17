@@ -26,20 +26,47 @@ public class TSocket extends TSocket_base {
 
   @Override
   public void sendData(byte[] data, int offset, int length) {
-    throw new RuntimeException("//Completar...");
+    int bytes_sent = 0;
+    while(length - bytes_sent > 0){
+
+      int this_length;
+      if (length-bytes_sent>=MSS) this_length = MSS;
+      else this_length = length - bytes_sent;
+
+      TCPSegment segment = segmentize(data, offset + bytes_sent, this_length);
+
+      bytes_sent = bytes_sent + this_length;
+
+      segment.setPsh(true);
+      segment.setDestinationPort(remotePort);
+      segment.setSourcePort(localPort);
+
+      network.send(segment);
+    }
   }
 
   protected TCPSegment segmentize(byte[] data, int offset, int length) {
-    throw new RuntimeException("//Completar...");
+    TCPSegment segment = new TCPSegment();
+    segment.setData(data, offset, length);
+    segment.setPsh(true);
+    return segment;
   }
 
   @Override
   public int receiveData(byte[] buf, int offset, int length) {
     lock.lock();
     try {
-      throw new RuntimeException("//Completar...");
+      while(rcvQueue.empty()){
+        appCV.awaitUninterruptibly();
+      }
+      int rcvbytes = 0;
+      while(rcvbytes != length && !rcvQueue.empty()){
+        rcvbytes += consumeSegment(buf, offset+rcvbytes, length-rcvbytes);
+      }
+      return rcvbytes;
     } finally {
       lock.unlock();
+      
     }
   }
 
@@ -56,7 +83,11 @@ public class TSocket extends TSocket_base {
   }
 
   protected void sendAck() {
-    throw new RuntimeException("//Completar...");
+    TCPSegment seg = new TCPSegment();
+    seg.setDestinationPort(remotePort);
+    seg.setSourcePort(localPort);
+    seg.setAck(true);
+    network.send(seg);
   }
 
   @Override
@@ -64,12 +95,19 @@ public class TSocket extends TSocket_base {
 
     lock.lock();
     try {
-      
-      
-      if (rseg.isAck()){
-        //nothing to be done in this exercise.
+      if(!rcvQueue.full()) {
+        printRcvSeg(rseg);
+        if (rseg.isAck()){
+          //nothing to be done in this exercise.
+        } else {
+          sendAck();
+          rcvQueue.put(rseg);
+          appCV.signalAll();
+        }
+        
       }
-      throw new RuntimeException("//Completar...");
+      
+      
     } finally {
       lock.unlock();
     }

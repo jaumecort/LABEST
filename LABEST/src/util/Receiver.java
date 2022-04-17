@@ -3,8 +3,8 @@ package util;
 public class Receiver extends Thread {
 
   protected TSocket_base input;
-  protected int recvBuf, recvInterval;
-  public static int numReceivers;
+  protected int recvBuf, recvInterval, id;
+  public static int numReceivers, ids;
   private Log log;
 
   public Receiver(TSocket_base sc, int recvBuf, int recvInterval) {
@@ -12,6 +12,8 @@ public class Receiver extends Thread {
     this.recvBuf      = recvBuf;
     this.recvInterval = recvInterval;
     numReceivers = numReceivers + 1;
+    ids++;
+    this.id = ids;
     log = Log.getLog();
   }
 
@@ -32,15 +34,15 @@ public class Receiver extends Thread {
         // check received data stamps
         for (int j = 0; j < r; j++) {
           if (buf[j] != n) {
-            log.printRED("\t\t\t\t\tReceiver: RECEIVED DATA IS CORRUPTED!!!");
+            log.printRED("\t\t\t\t\tReceiver "+id+": RECEIVED DATA IS CORRUPTED!!!");
             System.exit(0);
           }
           n = (byte) (n + 1);
         }
-        log.printBLUE("\t\t\t\t\tReceiver: received " + r + " bytes");
+        log.printBLUE("\t\t\t\t\tReceiver "+id+": received " + r + " bytes");
         Thread.sleep(recvInterval);
       }
-      log.printGREEN("\t\t\t\t\tReceiver: reception finished");
+      log.printGREEN("\t\t\t\t\tReceiver "+id+": reception finished");
       numReceivers = numReceivers - 1;
       if (Sender.numSenders == 0 && Receiver.numReceivers == 0) {
         Thread.sleep(1000);

@@ -27,7 +27,7 @@ public class TSocketSend extends TSocket_base {
       TCPSegment segment = segmentize(data, offset + bytes_sent, this_length);
 
       bytes_sent = bytes_sent + this_length;
-
+      log.printPURPLE("send: "+segment);
       network.send(segment);
     }
 

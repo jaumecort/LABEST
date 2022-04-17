@@ -18,7 +18,7 @@ public class Protocol extends Protocol_base {
     protected TSocket_base getMatchingTSocket(int localPort, int remotePort) {
         lk.lock();
         try {
-            for (TSocket_base sc : listenSockets) {
+            for (TSocket_base sc : activeSockets) {
                 if(sc.localPort == localPort && sc.remotePort == remotePort) return sc;
             }
             return null;

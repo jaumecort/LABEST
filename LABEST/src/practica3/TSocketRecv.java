@@ -30,8 +30,11 @@ public class TSocketRecv extends TSocket_base {
       while(rcvQueue.empty()){
         appCV.awaitUninterruptibly();
       }
-      int bytes_sent = consumeSegment(buf, offset, length);
-      return bytes_sent;
+      int rcvbytes = 0;
+      while(rcvbytes != length && !rcvQueue.empty()){
+        rcvbytes += consumeSegment(buf, offset+rcvbytes, length-rcvbytes);
+      }
+      return rcvbytes;
     } finally {
       lock.unlock();
       
@@ -58,7 +61,6 @@ public class TSocketRecv extends TSocket_base {
         rcvQueue.put(rseg);
         appCV.signalAll();
       }
-      else {log.printRED("FULLLLL");}
     } finally {
       lock.unlock();
     }

@@ -25,7 +25,7 @@ public class SimNet_Loss extends practica2.Protocol.SimNet_Monitor {
       else{
         while (queue.full()) full.awaitUninterruptibly();
         queue.put(seg);
-        log.printPURPLE(seg.toString());
+        //log.printPURPLE(seg.toString());
         empty.signalAll();
       }
     } finally {l.unlock();}
