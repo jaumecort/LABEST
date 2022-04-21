@@ -117,6 +117,7 @@ public class TSocket extends TSocket_base {
     seg.setDestinationPort(remotePort);
     seg.setSourcePort(localPort);
     seg.setAck(true);
+    seg.setAckNum(rcv_rcvNxt);
     network.send(seg);
   }
 
@@ -133,10 +134,9 @@ public class TSocket extends TSocket_base {
           sendAck();
           rcv_Queue.put(rseg);
         }
-        
+        appCV.signalAll();
       }
     } finally {
-      appCV.signalAll();
       lock.unlock();
     }
   }
