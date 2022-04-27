@@ -1,5 +1,7 @@
 package practica4;
 
+import java.net.Socket;
+
 import util.Protocol_base;
 import util.TCPSegment;
 import util.SimNet;
@@ -12,7 +14,8 @@ public class Protocol extends Protocol_base {
     }
 
     protected void ipInput(TCPSegment seg) {
-        getMatchingTSocket(seg.getDestinationPort(), seg.getSourcePort()).processReceivedSegment(seg);
+        TSocket_base sc = getMatchingTSocket(seg.getDestinationPort(), seg.getSourcePort());
+        if(sc!=null) sc.processReceivedSegment(seg);
     }
 
     protected TSocket_base getMatchingTSocket(int localPort, int remotePort) {

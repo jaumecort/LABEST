@@ -126,16 +126,25 @@ public class TSocket extends TSocket_base {
   public void processReceivedSegment(TCPSegment rseg) {
     lock.lock();
     try {
-      if(!rcv_Queue.full()) {
+      if (rseg.isAck()){
+        snd_rcvNxt++;
         printRcvSeg(rseg);
-        if (rseg.isAck()){
-          snd_rcvNxt++;
-        } else {
-          sendAck();
-          rcv_Queue.put(rseg);
-        }
         appCV.signalAll();
       }
+
+      if(rseg.isPsh()){
+        if(!rcv_Queue.full()) {
+          if(rcv_rcvNxt == rseg.getSeqNum()){
+            printRcvSeg(rseg);
+            rcv_Queue.put(rseg);
+            rcv_rcvNxt++;
+            appCV.signalAll();
+          }
+          sendAck();
+        }
+      }
+
+      
     } finally {
       lock.unlock();
     }
