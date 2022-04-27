@@ -1,7 +1,5 @@
 package practica4;
 
-import java.net.Socket;
-
 import util.Protocol_base;
 import util.TCPSegment;
 import util.SimNet;

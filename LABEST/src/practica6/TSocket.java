@@ -1,6 +1,6 @@
 package practica6;
 
-import java.security.AllPermission;
+//import java.security.AllPermission;
 import java.util.Iterator;
 import practica1.CircularQ.CircularQueue;
 import practica4.Protocol;
@@ -8,7 +8,6 @@ import util.Const;
 import util.TCPSegment;
 import util.TSocket_base;
 
-@SuppressWarnings("unchecked")
 public class TSocket extends TSocket_base {
 
     // Sender variables:
@@ -40,7 +39,7 @@ public class TSocket extends TSocket_base {
         snd_rcvWnd = Const.RCV_QUEUE_SIZE;
         snd_cngWnd = 3;
         snd_minWnd = Math.min(snd_rcvWnd, snd_cngWnd);
-        snd_unacknowledged_segs = new CircularQueue(snd_cngWnd);
+        snd_unacknowledged_segs = new CircularQueue<>(snd_cngWnd);
     }
 
     // -------------  SENDER PART  ---------------
@@ -107,7 +106,7 @@ public class TSocket extends TSocket_base {
             lock.unlock();
         }
     }
-    @SuppressWarnings("method")
+    
     private void unacknowledgedSegments_content() {
         Iterator<TCPSegment> ite = snd_unacknowledged_segs.iterator();
         log.printBLACK("\n-------------- content begins  --------------");
