@@ -83,7 +83,7 @@ public class TSocket_base {
 
   protected void printRcvSeg(TCPSegment rseg) {
     if (rseg.isPsh()) {
-      log.printGREEN("\t\treceived: " + rseg);
+      log.printGREEN("\t\t\t\t\treceived: " + rseg);
     }
     if (rseg.isAck()) {
       log.printPURPLE("  received: " + rseg);

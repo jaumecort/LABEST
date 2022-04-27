@@ -34,7 +34,7 @@ public class Sender extends Thread {
         }
         output.sendData(buf, 0, buf.length);
       }
-      log.printGREEN("Sender: transmission finished");
+      log.printBLUE("Sender: transmission finished");
       numSenders = numSenders - 1;
     } catch (Exception e) {
       log.printRED("Excepcio a Sender: ");

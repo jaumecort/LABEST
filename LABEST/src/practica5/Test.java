@@ -2,7 +2,7 @@ package practica5;
 
 import util.SimNet_FullDuplex;
 import practica4.Protocol;
-//import util.Const;
+import util.Const;
 import util.Receiver;
 import util.Sender;
 import util.SimNet;

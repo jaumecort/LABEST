@@ -29,7 +29,8 @@ public class TSocket extends TSocket_base {
     // init sender variables
     MSS = p.getNetwork().getMTU() - Const.IP_HEADER - Const.TCP_HEADER;
     // init receiver variables
-    rcv_Queue = new CircularQueue<>(Const.RCV_QUEUE_SIZE);
+    //rcv_Queue = new CircularQueue<>(Const.RCV_QUEUE_SIZE);
+    rcv_Queue = new CircularQueue<>(5);
     snd_rcvWnd = Const.RCV_QUEUE_SIZE;
   }
 
@@ -40,7 +41,6 @@ public class TSocket extends TSocket_base {
     try {
       int bytes_sent = 0;
       while(length - bytes_sent > 0){
-
         int this_length;
         if (length-bytes_sent>=MSS) this_length = MSS;
         else this_length = length - bytes_sent;
@@ -49,15 +49,11 @@ public class TSocket extends TSocket_base {
 
         bytes_sent = bytes_sent + this_length;
 
-        segment.setPsh(true);
-        segment.setSeqNum(snd_sndNxt);
-        
-        segment.setDestinationPort(remotePort);
-        segment.setSourcePort(localPort);
-
-        while(snd_rcvNxt != snd_sndNxt){appCV.awaitUninterruptibly();}
+        while(snd_sndNxt != snd_rcvNxt){appCV.awaitUninterruptibly();}
         snd_sndNxt++;
-        network.send(segment);
+        snd_UnacknowledgedSeg = segment;
+        network.send(snd_UnacknowledgedSeg);
+        startRTO();
     }
     } finally {
       lock.unlock();
@@ -68,6 +64,9 @@ public class TSocket extends TSocket_base {
     TCPSegment segment = new TCPSegment();
     segment.setData(data, offset, length);
     segment.setPsh(true);
+    segment.setSeqNum(snd_sndNxt);
+    segment.setDestinationPort(remotePort);
+    segment.setSourcePort(localPort);
     return segment;
   }
 
@@ -75,9 +74,19 @@ public class TSocket extends TSocket_base {
   protected void timeout() {
     lock.lock();
     try {
-      throw new RuntimeException("//Completar...");
+      if(snd_UnacknowledgedSeg != null){
+        if(zero_wnd_probe_ON){
+          log.printRED("0-wnd-probe: " + snd_UnacknowledgedSeg);
+        }
+        else{
+          log.printPURPLE("  retrans: " + snd_UnacknowledgedSeg);
+        }
+        network.send(snd_UnacknowledgedSeg);
+        startRTO();
+      }
     } finally {
       lock.unlock();
+      
     }
   }
 
@@ -118,6 +127,7 @@ public class TSocket extends TSocket_base {
     seg.setSourcePort(localPort);
     seg.setAck(true);
     seg.setAckNum(rcv_rcvNxt);
+    seg.setWnd(rcv_Queue.free());
     network.send(seg);
   }
 
@@ -127,9 +137,25 @@ public class TSocket extends TSocket_base {
     lock.lock();
     try {
       if (rseg.isAck()){
-        snd_rcvNxt++;
-        printRcvSeg(rseg);
-        appCV.signalAll();
+        if(rseg.getAckNum() == snd_sndNxt){
+          snd_rcvNxt++;
+          snd_UnacknowledgedSeg = null;
+          printRcvSeg(rseg);
+
+          if(zero_wnd_probe_ON && rseg.getWnd() != 0){
+            log.printRED("ZERO-WND-PROBE OFF");
+            zero_wnd_probe_ON = false;
+          } else if(rseg.getWnd() == 0) {
+              log.printRED("ZERO-WND-PROBE ON");
+              zero_wnd_probe_ON = true;
+          }
+          
+          
+          
+          appCV.signalAll();
+        } else {
+          log.printRED("ACK NO ESPERADO");
+        }
       }
 
       if(rseg.isPsh()){
@@ -139,6 +165,8 @@ public class TSocket extends TSocket_base {
             rcv_Queue.put(rseg);
             rcv_rcvNxt++;
             appCV.signalAll();
+          } else {
+            log.printRED("\t\t\t\t\t NUM SEQ NO ESPERADO: Paquete descartado.");
           }
           sendAck();
         }

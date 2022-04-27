@@ -42,7 +42,7 @@ public class Receiver extends Thread {
         log.printBLUE("\t\t\t\t\tReceiver "+id+": received " + r + " bytes");
         Thread.sleep(recvInterval);
       }
-      log.printGREEN("\t\t\t\t\tReceiver "+id+": reception finished");
+      log.printBLUE("\t\t\t\t\tReceiver "+id+": reception finished");
       numReceivers = numReceivers - 1;
       if (Sender.numSenders == 0 && Receiver.numReceivers == 0) {
         Thread.sleep(1000);
