@@ -30,7 +30,7 @@ public class TSocket extends TSocket_base {
     MSS = p.getNetwork().getMTU() - Const.IP_HEADER - Const.TCP_HEADER;
     // init receiver variables
     //rcv_Queue = new CircularQueue<>(Const.RCV_QUEUE_SIZE);
-    rcv_Queue = new CircularQueue<>(5);
+    rcv_Queue = new CircularQueue<>(2);
     snd_rcvWnd = Const.RCV_QUEUE_SIZE;
   }
 
@@ -41,15 +41,19 @@ public class TSocket extends TSocket_base {
     try {
       int bytes_sent = 0;
       while(length - bytes_sent > 0){
+        while(snd_sndNxt != snd_rcvNxt){appCV.awaitUninterruptibly();}
+
         int this_length;
         if (length-bytes_sent>=MSS) this_length = MSS;
         else this_length = length - bytes_sent;
+        if(zero_wnd_probe_ON) this_length = 1;
+        
 
         TCPSegment segment = segmentize(data, offset + bytes_sent, this_length);
 
         bytes_sent = bytes_sent + this_length;
 
-        while(snd_sndNxt != snd_rcvNxt){appCV.awaitUninterruptibly();}
+        
         snd_sndNxt++;
         snd_UnacknowledgedSeg = segment;
         network.send(snd_UnacknowledgedSeg);
@@ -149,7 +153,6 @@ public class TSocket extends TSocket_base {
               log.printRED("ZERO-WND-PROBE ON");
               zero_wnd_probe_ON = true;
           }
-          
           
           
           appCV.signalAll();

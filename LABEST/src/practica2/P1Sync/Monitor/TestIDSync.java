@@ -3,7 +3,7 @@ package practica2.P1Sync.Monitor;
 public class TestIDSync {
 
     public static void main(String[] args) {
-        int N = 2;
+        int N = 5;
         MonitorSync mon = new MonitorSync(N);
 
         CounterThreadIDSync[] f = new CounterThreadIDSync[N];

@@ -13,7 +13,7 @@ public class Test {
     
     SimNet net = new SimNet_Queue();
     Sender   s = new Sender(new TSocketSend(net), 10, 1, 100);
-    Receiver r = new Receiver(new TSocketRecv(net), 1, 500);
+    Receiver r = new Receiver(new TSocketRecv(net), 1, 50);
     
     s.run();
     r.run();

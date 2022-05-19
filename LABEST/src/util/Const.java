@@ -18,15 +18,15 @@ public interface Const {
   //sender parameters:
   int SND_RTO           = 500;
   
-  int SND_NUM           = 5;
-  int SND_SIZE          = 3000;
+  int SND_NUM           = 2;
+  int SND_SIZE          = 300;
   int SND_INTERVAL      = 100;
   
   //receiver parameters:
-  int RCV_QUEUE_SIZE    = 50;
+  int RCV_QUEUE_SIZE    = 30;
   
   int RCV_SIZE          = 2000;
-  int RCV_INTERVAL      = 500;
+  int RCV_INTERVAL      = 5000;
   
   //server parameter:
   int LISTEN_QUEUE_SIZE = 10;

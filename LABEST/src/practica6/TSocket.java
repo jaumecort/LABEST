@@ -47,23 +47,67 @@ public class TSocket extends TSocket_base {
     public void sendData(byte[] data, int offset, int length) {
         lock.lock();
         try {
-            throw new RuntimeException("//Completar...");
+        int bytes_sent = 0;
+        while(length - bytes_sent > 0){
+
+            snd_minWnd = Math.min(snd_rcvWnd, snd_cngWnd);
+            
+            while((snd_unacknowledged_segs.size()>=snd_minWnd && snd_rcvWnd!=0) || snd_unacknowledged_segs.full()){
+              appCV.awaitUninterruptibly();
+            }
+
+            if(zero_wnd_probe_ON && snd_rcvWnd > 0){
+              log.printRED("ZERO-WND-PROBE OFF");
+              zero_wnd_probe_ON = false;
+            } else if(snd_rcvWnd == 0) {
+              log.printRED("ZERO-WND-PROBE ON");
+              zero_wnd_probe_ON = true;
+            }
+
+            int this_length;
+            if (length-bytes_sent>=MSS) this_length = MSS;
+            else this_length = length - bytes_sent;
+            if(zero_wnd_probe_ON) this_length = 1;
+            
+
+            TCPSegment segment = segmentize(data, offset + bytes_sent, this_length);
+            bytes_sent = bytes_sent + this_length;
+            snd_sndNxt++;
+            snd_unacknowledged_segs.put(segment);
+            log.printBLUE("send: " + segment.toString());
+            network.send(segment);
+            startRTO();
+            
+        }
         } finally {
-            lock.unlock();
+        lock.unlock();
         }
     }
 
     protected TCPSegment segmentize(byte[] data, int offset, int length) {
-        throw new RuntimeException("//Completar...");
+        TCPSegment segment = new TCPSegment();
+        segment.setData(data, offset, length);
+        segment.setPsh(true);
+        segment.setSeqNum(snd_sndNxt);
+        segment.setDestinationPort(remotePort);
+        segment.setSourcePort(localPort);
+        return segment;
     }
 
     @Override
     protected void timeout() {
         lock.lock();
         try {
-            throw new RuntimeException("//Completar...");
+        if(!snd_unacknowledged_segs.empty()){
+            for (TCPSegment tcpSegment : snd_unacknowledged_segs) {
+                log.printRED("retrans: " + tcpSegment.toString());
+                network.send(tcpSegment);
+            }
+            startRTO();
+        }
         } finally {
-            lock.unlock();
+        lock.unlock();
+        
         }
     }
 
@@ -72,9 +116,17 @@ public class TSocket extends TSocket_base {
     public int receiveData(byte[] buf, int offset, int maxlen) {
         lock.lock();
         try {
-            throw new RuntimeException("//Completar...");
+          while(rcv_Queue.empty()){
+            appCV.awaitUninterruptibly();
+          }
+          int rcvbytes = 0;
+          while(rcvbytes != maxlen && !rcv_Queue.empty()){
+            rcvbytes += consumeSegment(buf, offset+rcvbytes, maxlen-rcvbytes);
+          }
+          return rcvbytes;
         } finally {
-            lock.unlock();
+          lock.unlock();
+          
         }
     }
 
@@ -91,7 +143,14 @@ public class TSocket extends TSocket_base {
     }
 
     protected void sendAck() {
-        throw new RuntimeException("//Completar...");
+        TCPSegment seg = new TCPSegment();
+        seg.setDestinationPort(remotePort);
+        seg.setSourcePort(localPort);
+        seg.setAck(true);
+        seg.setAckNum(rcv_rcvNxt);
+        seg.setWnd(rcv_Queue.free());
+        log.printBLUE("\t\t\t\tsend: "+seg.toString());
+        network.send(seg);
     }
 
     // -------------  SEGMENT ARRIVAL  -------------
@@ -99,11 +158,44 @@ public class TSocket extends TSocket_base {
 
         lock.lock();
         try {
+          // ACK
+          if (rseg.isAck()){
+              log.printPURPLE("reveived: " + rseg.toString());
 
-            throw new RuntimeException("//Completar...");
+              // Actualizar variables
+              snd_rcvNxt = rseg.getAckNum();
+              snd_rcvWnd = rseg.getWnd();
 
+              //ACKNOWLEDGE
+              Iterator ite = snd_unacknowledged_segs.iterator();
+              while(ite.hasNext()){
+                  TCPSegment next = (TCPSegment) ite.next();
+                  if(next.getSeqNum()<snd_rcvNxt) ite.remove();
+              }
+
+              snd_minWnd = Math.min(snd_rcvWnd, snd_cngWnd);
+              
+              stopRTO();
+              if(!snd_unacknowledged_segs.empty()) startRTO();
+              appCV.signalAll();
+          }
+
+          // PSH
+          if(rseg.isPsh()){
+            if(!rcv_Queue.full()) {
+              printRcvSeg(rseg);
+              if(rcv_rcvNxt == rseg.getSeqNum()){
+                rcv_Queue.put(rseg);
+                rcv_rcvNxt++;
+                appCV.signalAll();
+              } else log.printRED("\t\t\t\t\t NUM SEQ NO ESPERADO: Paquete descartado.");
+              sendAck();
+            }
+          }
+    
+          
         } finally {
-            lock.unlock();
+          lock.unlock();
         }
     }
     

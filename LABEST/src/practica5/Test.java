@@ -11,8 +11,8 @@ public class Test {
 
   public static void main(String[] args) {
 
-    //SimNet_FullDuplex net = new SimNet_FullDuplex(Const.LOSS_RATE_PSH, Const.LOSS_RATE_ACK);
-    SimNet_FullDuplex net = new SimNet_FullDuplex(0.00,0.00);
+    SimNet_FullDuplex net = new SimNet_FullDuplex(Const.LOSS_RATE_PSH, Const.LOSS_RATE_ACK);
+    //SimNet_FullDuplex net = new SimNet_FullDuplex(0.00,0.00);
 
     new Thread(new HostSnd(net.getSndEnd())).start();
     new Thread(new HostRcv(net.getRcvEnd())).start();
